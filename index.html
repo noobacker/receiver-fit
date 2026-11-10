@@ -7,7 +7,7 @@
 <meta name="description" content="Pick an NFL receiver. See how well he gets open against man and zone coverage, and how often he would be open in time for another team's quarterback.">
 <link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-800.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=1794340356">
+<link rel="stylesheet" href="styles.css?v=1794340611">
 <script>(function(){var d=document.documentElement;d.classList.add("choosing");try{var m=localStorage.getItem("mbs-mode");if(m==="game"||m==="article")document.documentElement.setAttribute("data-mode",m)}catch(e){}})()</script>
 <style>
 html{--good:#8fe3b0;--bad:#ff9a8f}
@@ -201,20 +201,23 @@ html:not(.choosing) #choose{display:none}
 
 
 /* Opening animation: chosen half expands, then the page builds in. Mode-specific. */
-#choose{transition:opacity .45s ease,grid-template-columns .65s cubic-bezier(.7,0,.2,1),grid-template-rows .6s cubic-bezier(.7,0,.2,1)}
+#choose{transition:opacity .45s ease,grid-template-columns .65s cubic-bezier(.7,0,.2,1)}
 .pick{min-width:0;overflow:hidden}
-#choose.leaving{pointer-events:none;grid-template-rows:minmax(0,0fr) minmax(0,1fr)}
+#choose.leaving{pointer-events:none}
+#choose.leaving .pick{margin-top:calc(-1*var(--hh,0px))}
+.pick{height:auto;align-self:stretch;transition:filter .25s,margin-top .5s cubic-bezier(.7,0,.2,1)}
+@media(max-width:700px){#choose.leaving .pick{margin-top:0}#choose.leaving .choose__head{opacity:0;transition:transform .5s cubic-bezier(.7,0,.2,1),opacity .3s}}
 .choose__head{min-height:0;overflow:hidden}
 #choose{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 #choose.pg{grid-template-columns:minmax(0,1fr) minmax(0,0fr)}
 #choose.pa{grid-template-columns:minmax(0,0fr) minmax(0,1fr)}
 #choose.leaving .choose__head{transform:translateY(-101%);transition:transform .5s cubic-bezier(.7,0,.2,1)}
-#choose.pg .pick--article>*,#choose.pa .pick--game>*{opacity:0;transition:opacity .2s}
+#choose.leaving .pick>*{opacity:0;transition:opacity .22s}
 #choose.leaving{animation:none}
 #choose.fade{opacity:0}
 #choose.fade .pick>*{opacity:0;transition:opacity .25s}
 #sweep{position:fixed;left:0;right:0;z-index:210;pointer-events:none;transform-origin:left center;opacity:0}
-html[data-mode="game"] #sweep{top:38vh;height:10px;background:#ffd23f}
+html[data-mode="game"] #sweep{display:none}
 html[data-mode="article"] #sweep{top:0;height:4px;background:#c8102e}
 html[data-mode="game"] #sweep.go{animation:sweepG 1s cubic-bezier(.6,0,.2,1) both}
 html[data-mode="article"] #sweep.go{animation:sweepA .9s ease both}
@@ -395,7 +398,7 @@ html:not(.choosing) #choose{display:none}
 </main>
 
 
-<script src="data.js?v=1794340356"></script>
+<script src="data.js?v=1794340611"></script>
 <script>
 const D=window.DATA,$=id=>document.getElementById(id),NS="http://www.w3.org/2000/svg";
 const P=D.players.slice().sort((a,b)=>a.n.localeCompare(b.n));
@@ -551,10 +554,10 @@ function playOpen(mode){const d=document.documentElement;if(matchMedia("(prefers
   document.querySelectorAll('input[name="mode"]').forEach(r=>r.checked=r.value===m);
   render();renderVal();show("top");$("pl").blur();
   if(matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.remove("choosing");return}
-  ch.classList.add("leaving",m==="game"?"pg":"pa");
-  setTimeout(()=>ch.classList.add("fade"),650);
-  setTimeout(()=>{if(m==="article")articleIntro(()=>playOpen("article"));else playOpen(m)},560);
-  setTimeout(()=>{document.documentElement.classList.remove("choosing");ch.classList.remove("leaving","pg","pa","fade")},1150)});
+  ch.style.setProperty("--hh",ch.querySelector(".choose__head").offsetHeight+"px");ch.classList.add("leaving",m==="game"?"pg":"pa");
+  const clean=()=>{document.documentElement.classList.remove("choosing");ch.classList.remove("leaving","pg","pa","fade");ch.style.display="none"};
+  if(m==="article"){articleIntro(()=>playOpen("article"));setTimeout(()=>{ch.style.transition="none";clean()},700)}
+  else{setTimeout(()=>ch.classList.add("fade"),650);setTimeout(()=>playOpen(m),560);setTimeout(clean,1150)}});
  ch.addEventListener("keydown",e=>{if(e.key==="Tab"){const bs=[...ch.querySelectorAll(".pick")];const i=bs.indexOf(document.activeElement);e.preventDefault();bs[(i+(e.shiftKey?-1:1)+bs.length)%bs.length].focus()}if(e.key==="ArrowLeft"||e.key==="ArrowRight")ch.querySelectorAll(".pick")[e.key==="ArrowLeft"?0:1].focus()})})();
 
 
